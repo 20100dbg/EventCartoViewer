@@ -1,0 +1,6 @@
+//minimale
+X, Y
+
+
+//complet
+X, Y, gdh debut, gdh fin, label, description, idEvent, typeForme
