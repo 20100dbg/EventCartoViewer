@@ -23,7 +23,18 @@ namespace EventCartoViewer
             axMap1.ShowCoordinatesFormat = tkAngleFormat.afDegrees;
             axMap1.MouseUpEvent += AxMap1_MouseUpEvent;
 
+            for (int i = 0; i < Settings.cartes.Count; i++)
+            {
+                string carteFichier = "carte/" + Settings.cartes[i];
+                axMap1.AddLayerFromFilename(carteFichier, tkFileOpenStrategy.fosAutoDetect, true);
+            }
+
             InitShapeFiles();
+        }
+
+        public static void AddLayer(string filename)
+        {
+            axMap1.AddLayerFromFilename(filename, tkFileOpenStrategy.fosAutoDetect, true);
         }
 
         public static void InitShapeFiles()
@@ -35,11 +46,11 @@ namespace EventCartoViewer
             Utils utils = new Utils();
             LinePattern pattern = new LinePattern();
             pattern.AddLine(utils.ColorByName(tkMapColor.Black), 2.0f, tkDashStyle.dsSolid);
-            /*
+            
             ShapefileCategory ct = sf.Categories.Add("TirGonio");
             ct.DrawingOptions.LinePattern = pattern;
             ct.DrawingOptions.UseLinePattern = true;
-            */
+            
 
             sf = new Shapefile();
             sf.CreateNewWithShapeID("", ShpfileType.SHP_POINT);
@@ -56,7 +67,7 @@ namespace EventCartoViewer
             layerArea = axMap1.AddLayer(sf, true);
         }
 
-        public static void DrawPoint(Coord cPoint)
+        public static void DrawPoint(EventCoord cPoint)
         {
             double x = 0, y = 0;
             axMap1.DegreesToProj(cPoint.X, cPoint.Y, ref x, ref y);
@@ -73,7 +84,7 @@ namespace EventCartoViewer
             sf.EditInsertShape(shp, ref index);
         }
 
-        public static void DrawLine(List<Coord> coordinates)
+        public static void DrawLine(List<EventCoord> coordinates)
         {
             Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerLine));
             Shape shp = new Shape();
@@ -98,7 +109,7 @@ namespace EventCartoViewer
             //sf.set_ShapeCategory(index, 0);
         }
 
-        public static void DrawArea(List<Coord> coordinates)
+        public static void DrawArea(List<EventCoord> coordinates)
         {
             Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerArea));
             Shape shp = new Shape();

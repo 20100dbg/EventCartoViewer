@@ -1,11 +1,8 @@
+System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
 
 //avant la ligne this.tabControl1.SuspendLayout();
 this.axMap1 = new AxMapWinGIS.AxMap();
 ((System.ComponentModel.ISupportInitialize)(this.axMap1)).BeginInit();
-
-
-//premiere ligne de //tab_carto
-this.tab_carto.Controls.Add(this.axMap1);
 
 
 //entre deux composants
@@ -13,11 +10,15 @@ this.tab_carto.Controls.Add(this.axMap1);
 // axMap1
 //
 this.axMap1.Enabled = true;
-this.axMap1.Location = new System.Drawing.Point(11, 46);
+this.axMap1.Location = new System.Drawing.Point(10, 10);
 this.axMap1.Name = "axMap1";
 this.axMap1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axMap1.OcxState")));
-this.axMap1.Size = new System.Drawing.Size(770, 300);
+this.axMap1.Size = new System.Drawing.Size(640, 230);
 this.axMap1.TabIndex = 28;
+
+
+//A la fin dans //Form1
+this.Controls.Add(this.axMap1);
 
 
 //en toute fin avant les lignes

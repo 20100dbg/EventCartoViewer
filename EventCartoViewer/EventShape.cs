@@ -12,7 +12,7 @@ namespace EventCartoViewer
         public string Label { get; set; }
         public string Description { get; set; }
         public Color Style { get; set; }
-        public List<Coord> Coordinates { get; set; }
+        public List<EventCoord> Coordinates { get; set; }
         public int TypeForme { get; set; }
 
         public static int TriGdh(EventShape x, EventShape y)
