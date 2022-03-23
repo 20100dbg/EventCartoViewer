@@ -4,7 +4,7 @@ using System.Drawing;
 
 namespace EventCartoViewer
 {
-    public class EventShape
+    public class EventShape : ICloneable
     {
         public int Id { get; set; }
         public DateTime GdhDebut { get; set; }
@@ -20,6 +20,21 @@ namespace EventCartoViewer
             if (x.GdhDebut < y.GdhDebut) return -1;
             else if (x.GdhDebut > y.GdhDebut) return 1;
             else return 0;
+        }
+
+        public object Clone()
+        {
+            return new EventShape
+            {
+                Id = this.Id,
+                GdhDebut = this.GdhDebut,
+                GdhFin = this.GdhFin,
+                Coordinates = this.Coordinates,
+                Label = this.Label,
+                Description = this.Description,
+                Style = this.Style,
+                TypeForme = this.TypeForme
+            };
         }
     }
 }
