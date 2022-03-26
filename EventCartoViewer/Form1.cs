@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using SliderControl;
-using System.Globalization;
 
 namespace EventCartoViewer
 {
@@ -20,7 +19,7 @@ namespace EventCartoViewer
             Settings.LoadDefaultValues();
             Settings.ReadConfigFile();
 
-            s = new Slider(this, new Point(40, 470), new Size(400, 22), 0, 100);
+            s = new Slider(this.Controls, new Point(40, 450), new Size(400, 22), 0, 100);
             s.SpanMoving += S_SpanMoving;
             s.SpanMoved += S_SpanMoving;
             s.SpanResizing += S_SpanResizing;
@@ -33,12 +32,10 @@ namespace EventCartoViewer
         public void Init()
         {
             //Affiche les couches dispo
-            LoadCarto();
+            ListeCartoDispo();
 
             //charge la carto
             Carto.Init(axMap1);
-
-            this.cblb_couches.ItemCheck += Cblb_couches_ItemCheck;
         }
 
         #region dgv
@@ -74,22 +71,18 @@ namespace EventCartoViewer
         }
         #endregion
 
-        #region carto
 
-        private void LoadCarto()
+        #region carto
+        private void ListeCartoDispo()
         {
+            cblb_couches.Items.Clear();
+
             foreach (string file in Directory.EnumerateFiles("carte/", "*.tif"))
             {
                 string nom = Path.GetFileName(file);
-
                 bool flag = Settings.cartes.Contains(nom);
                 cblb_couches.Items.Add(nom, flag);
             }
-        }
-
-        private void Cblb_couches_ItemCheck(object sender, ItemCheckEventArgs e)
-        {
-            SaveCarto();
         }
 
         private void SaveCarto()
@@ -108,9 +101,21 @@ namespace EventCartoViewer
             Settings.WriteConfigFile();
         }
 
+        public void ForceRefreshCarto()
+        {
+            Carto.Init(axMap1);
+            SaveCarto();
+            GetPoints();    
+        }
+
         private void b_test_Click(object sender, EventArgs e)
         {
             Carto.SetBuffer();
+        }
+
+        private void b_applyCarto_Click(object sender, EventArgs e)
+        {
+            ForceRefreshCarto();
         }
 
         #endregion
@@ -120,31 +125,27 @@ namespace EventCartoViewer
             return Color.FromKnownColor((KnownColor)idStyle);
         }
 
-        int oldVal = 0;
-        int oldSpan = 10;
-
         private void S_SpanMoving(object sender, SpanMovedEventArgs e)
         {
-            int diff = Math.Abs(oldVal - e.NewValue);
-            if (diff > 2)
-            {
-                GetPoints();
-                oldVal = e.NewValue;
-            }
+            GetPoints();
         }
 
         private void S_SpanResizing(object sender, SpanResizedEventArgs e)
         {
-            int diff = Math.Abs(oldSpan - e.NewSize);
-            if (diff > 2)
-            {
-                GetPoints();
-                oldSpan = e.NewSize;
-            }
+            GetPoints();
         }
+
+        long refTicks = 0;
+        long delay = 50000;
 
         private void GetPoints()
         {
+            if (events.Count == 0) return;
+
+            long nowTicks = DateTime.Now.Ticks;
+            if (nowTicks < refTicks + delay) return;
+            refTicks = nowTicks;
+
             int val = s.CurrentValue;
             int span = s.CurrentSpan;
 
@@ -153,26 +154,32 @@ namespace EventCartoViewer
 
             DateTime dtStart = gdhMin.AddSeconds(valSecondes);
             DateTime dtFin = dtStart.AddSeconds(spanSecondes);
-            
+            l_currentValue.Text = dtStart.ToString();
+
             List<EventShape> aDessiner = new List<EventShape>();
+
+            Carto.ClearCarto();
 
             for (int i = 0; i < events.Count; i++)
             {
-                /*
                 if ((events[i].GdhDebut >= dtStart && events[i].GdhDebut <= dtFin) ||
                     (events[i].GdhFin >= dtStart && events[i].GdhFin <= dtFin) ||
                     (events[i].GdhDebut <= dtStart && events[i].GdhFin >= dtFin))
-                */
-                if ((events[i].GdhDebut >= dtStart && events[i].GdhDebut <= dtFin) ||
-                    (events[i].GdhDebut < dtStart && events[i].GdhFin > dtStart))
                 {
+                    //on dessine toujours les points
+                    for (int j = 0; j < events[i].Coordinates.Count; j++)
+                    {
+                        Carto.DrawPoint(events[i].Coordinates[j]);
+                    }
+
+                    if (events[i].TypeForme == 2) Carto.DrawLine(events[i].Coordinates);
+                    else if (events[i].TypeForme == 3) Carto.DrawArea(events[i].Coordinates);
+
                     aDessiner.Add(events[i]);
                 }
             }
 
             FillDgv(aDessiner);
-            Carto.ClearCarto();
-            DrawShapes(aDessiner);
             axMap1.Redraw();
         }
 
@@ -337,25 +344,13 @@ namespace EventCartoViewer
                 events = ReadWKT(datafile);
             }
 
-
             GetTimeUnit();
             SetSlider();
             GetPoints();
         }
         #endregion
 
-
-        private void DrawShapes(List<EventShape> shapes)
-        {
-            for (int i = 0; i < shapes.Count; i++)
-            {
-                if (shapes[i].TypeForme == 1) Carto.DrawPoint(shapes[i].Coordinates[0]);
-                else if (shapes[i].TypeForme == 3) Carto.DrawLine(shapes[i].Coordinates);
-                else if (shapes[i].TypeForme == 3) Carto.DrawArea(shapes[i].Coordinates);
-            }
-        }
-
-
+        
         int[] tabUnit = new int[] { 1, 60, 24, 30, 12, 1 };
         int idxTabUnit = -1;
         DateTime gdhMin = DateTime.MaxValue, gdhMax = DateTime.MinValue;
@@ -385,9 +380,7 @@ namespace EventCartoViewer
         private double GetSecondsToUnits(double seconds)
         {
             for (int i = 0; i < idxTabUnit; i++)
-            {
                 seconds = seconds / tabUnit[i];
-            }
 
             return seconds;
         }
@@ -395,9 +388,7 @@ namespace EventCartoViewer
         private double GetUnitsToSeconds(double units)
         {
             for (int i = 0; i < idxTabUnit; i++)
-            {
                 units = units * tabUnit[i];
-            }
 
             return units;
         }
