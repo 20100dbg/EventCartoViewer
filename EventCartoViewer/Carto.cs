@@ -63,6 +63,18 @@ namespace EventCartoViewer
 
             sf = new Shapefile();
             sf.CreateNewWithShapeID("", ShpfileType.SHP_POINT);
+
+            sf.StartEditingTable();
+            sf.EditAddField("label", FieldType.STRING_FIELD, 0, 50);
+
+            sf.Labels.FrameVisible = false;
+            sf.Labels.FontName = "Arial";
+            sf.Labels.FontSize = 8;
+            sf.Labels.AvoidCollisions = false;
+            sf.Labels.ScaleLabels = false;
+            //sf.Labels.Synchronized = true;
+
+
             layerPoint = axMap1.AddLayer(sf, true);
 
             sf.DefaultDrawingOptions.PointType = tkPointSymbolType.ptSymbolStandard;
@@ -71,7 +83,7 @@ namespace EventCartoViewer
             sf.CollisionMode = tkCollisionMode.AllowCollisions;
         }
 
-        public static void DrawPoint(EventCoord cPoint)
+        public static void DrawPoint(EventCoord cPoint, string label)
         {
             Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
             Shape shp = new Shape();
@@ -82,6 +94,19 @@ namespace EventCartoViewer
             shp.AddPoint(x, y);
 
             sf.EditAddShape(shp);
+            sf.EditCellValue(1, sf.NumShapes - 1, label);
+        }
+
+        public static void GenerateLabels()
+        {
+            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
+
+            for (int i = 0; i < sf.NumShapes; i++)
+            {
+                string text = sf.Table.CellValue[1, i].ToString();
+                sf.Labels.AddLabel(text, sf.Shape[i].Center.x, sf.Shape[i].Center.y);
+            }
+            sf.Labels.Synchronized = true;
         }
 
         public static void DrawLine(List<EventCoord> coordinates)
@@ -118,6 +143,24 @@ namespace EventCartoViewer
             shp.AddPoint(x, y);
 
             sf.EditAddShape(shp);
+        }
+
+        public static void testLabel()
+        {
+            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
+            //sf.Labels.Generate("[MonChamp]", tkLabelPositioning.lpCentroid, false);
+            //sf.Labels.TextRenderingHint = tkTextRenderingHint.SystemDefault;
+
+            int fieldIndex = 0;
+            for (int i = 0; i < sf.NumShapes; i++)
+            {
+                Shape shp = sf.Shape[i];
+                string text = sf.CellValue[fieldIndex, i].ToString();
+                Point pnt = shp.Centroid;
+                sf.Labels.AddLabel(text, pnt.x, pnt.y, 0.0, -1);
+            }
+
+            sf.Labels.Synchronized = true;
         }
 
         public static void SetBuffer()
