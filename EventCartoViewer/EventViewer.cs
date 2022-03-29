@@ -7,12 +7,12 @@ using SliderControl;
 
 namespace EventCartoViewer
 {
-    public partial class Form1 : Form
+    public partial class EventViewer : Form
     {
         Slider s;
         List<EventShape> events = new List<EventShape>();
 
-        public Form1()
+        public EventViewer()
         {
             InitializeComponent();
 
@@ -20,7 +20,7 @@ namespace EventCartoViewer
             Settings.ReadConfigFile();
 
             s = new Slider(this.Controls, new Point(40, 450), new Size(400, 22), 0, 100);
-            s.TickRate = 100;
+            s.TickRate = 50;
             s.SpanMoving += S_SpanMoving;
             s.SpanMoved += S_SpanMoving;
             s.SpanResizing += S_SpanResizing;
@@ -29,6 +29,18 @@ namespace EventCartoViewer
             Init();
             InitDgv();
         }
+
+
+        public void test()
+        {
+            int val = 35;
+            int minVal = 1;
+            int maxVal = 300;
+
+            double nuance = Util.GetRapport(val, minVal, maxVal, 1025);
+            Color c = Util.GetColorFromNuance(nuance, 255);
+        }
+
 
         public void Init()
         {
@@ -101,28 +113,25 @@ namespace EventCartoViewer
                 if (cblb_couches.GetItemChecked(i))
                 {
                     Settings.cartes.Add(cblb_couches.Items[i].ToString());
-                    Carto.AddLayer("carte/" + cblb_couches.Items[i].ToString());
                 }
             }
 
             Settings.WriteConfigFile();
         }
 
-        public void ForceRefreshCarto()
+            private void b_test_Click(object sender, EventArgs e)
         {
-            Carto.Init(axMap1);
-            SaveCarto();
-            GetPoints();    
-        }
-
-        private void b_test_Click(object sender, EventArgs e)
-        {
-            Carto.SetBuffer();
+            Configuration c = new Configuration();
+            c.Show();
         }
 
         private void b_applyCarto_Click(object sender, EventArgs e)
         {
-            ForceRefreshCarto();
+            SaveCarto();
+
+            Carto.Init(axMap1);
+            
+            GetPoints();
         }
 
         #endregion
@@ -180,16 +189,23 @@ namespace EventCartoViewer
                     }
 
                     if (events[i].TypeForme == 2) Carto.DrawLine(events[i].Coordinates);
-                    else if (events[i].TypeForme == 3) Carto.DrawArea(events[i].Coordinates);
+                    else if (events[i].TypeForme == 3)
+                    {
+                        Carto.DrawArea(events[i].Coordinates);
+
+                        if (Settings.afficherBuffer)
+                            Carto.SetBuffer();
+                    }
 
                     aDessiner.Add(events[i]);
                 }
             }
 
-            Carto.GenerateLabels();
+            if (Settings.afficherLabel)
+                Carto.GenerateLabels();
+
             FillDgv(aDessiner);
             axMap1.Redraw();
-            System.Threading.Thread.Sleep(100);
         }
 
         #region import
@@ -355,7 +371,8 @@ namespace EventCartoViewer
                         });
                     }
 
-                    es.Coordinates.Sort(EventCoord.TriCoord);
+                    if (Settings.triCoordSurface)
+                        es.Coordinates.Sort(EventCoord.TriCoord);
                 }
                 else if (coord.StartsWith("\"POINT"))
                 {

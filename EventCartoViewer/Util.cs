@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -10,6 +11,47 @@ namespace EventCartoViewer
     {
         public const int CoordHS = -99999;
         public static string DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+
+
+        public static double GetRapport(double val, double minVal, double maxVal, double maxRapport)
+        {
+            double diffVal = val - minVal;
+            return (maxRapport * diffVal) / (maxVal - minVal);
+        }
+
+        public static Color GetColorFromNuance(double nuance, int opacite)
+        {
+            int[] RGB = new int[] { 0, 0, 255 };
+            bool augmenter = true;
+            int idxTab = 1;
+            bool flag;
+
+            for (int idx = 0; idx < nuance; idx++)
+            {
+                flag = false;
+                RGB[idxTab] += (augmenter) ? 1 : -1;
+
+                if (RGB[idxTab] >= 255)
+                {
+                    RGB[idxTab] = 255;
+                    flag = true;
+                }
+                if (RGB[idxTab] <= 0)
+                {
+                    RGB[idxTab] = 0;
+                    flag = true;
+                }
+
+                if (flag)
+                {
+                    augmenter = !augmenter;
+                    idxTab += 1;
+                    if (idxTab == 3) idxTab = 0;
+                }
+            }
+            return Color.FromArgb(opacite, RGB[0], RGB[1], RGB[2]);
+        }
+
 
         public static void WriteFile(string txt, string filename)
         {

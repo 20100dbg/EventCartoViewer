@@ -1,6 +1,6 @@
 ﻿namespace EventCartoViewer
 {
-    partial class Form1
+    partial class EventViewer
     {
         /// <summary>
         /// Variable nécessaire au concepteur.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EventViewer));
             this.cblb_couches = new System.Windows.Forms.CheckedListBox();
             this.dgv = new System.Windows.Forms.DataGridView();
             this.b_loadData = new System.Windows.Forms.Button();

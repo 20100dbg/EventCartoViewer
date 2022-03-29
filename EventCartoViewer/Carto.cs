@@ -27,7 +27,7 @@ namespace EventCartoViewer
             for (int i = 0; i < Settings.cartes.Count; i++)
             {
                 string carteFichier = "carte/" + Settings.cartes[i];
-                axMap1.AddLayerFromFilename(carteFichier, tkFileOpenStrategy.fosAutoDetect, true);
+                AddLayer(carteFichier);
             }
 
             InitShapeFiles();
@@ -68,12 +68,8 @@ namespace EventCartoViewer
             sf.EditAddField("label", FieldType.STRING_FIELD, 0, 50);
 
             sf.Labels.FrameVisible = false;
-            sf.Labels.FontName = "Arial";
             sf.Labels.FontSize = 8;
             sf.Labels.AvoidCollisions = false;
-            sf.Labels.ScaleLabels = false;
-            //sf.Labels.Synchronized = true;
-
 
             layerPoint = axMap1.AddLayer(sf, true);
 
@@ -95,18 +91,6 @@ namespace EventCartoViewer
 
             sf.EditAddShape(shp);
             sf.EditCellValue(1, sf.NumShapes - 1, label);
-        }
-
-        public static void GenerateLabels()
-        {
-            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
-
-            for (int i = 0; i < sf.NumShapes; i++)
-            {
-                string text = sf.Table.CellValue[1, i].ToString();
-                sf.Labels.AddLabel(text, sf.Shape[i].Center.x, sf.Shape[i].Center.y);
-            }
-            sf.Labels.Synchronized = true;
         }
 
         public static void DrawLine(List<EventCoord> coordinates)
@@ -145,21 +129,24 @@ namespace EventCartoViewer
             sf.EditAddShape(shp);
         }
 
-        public static void testLabel()
+        public static void GenerateLabels()
         {
             Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
-            //sf.Labels.Generate("[MonChamp]", tkLabelPositioning.lpCentroid, false);
-            //sf.Labels.TextRenderingHint = tkTextRenderingHint.SystemDefault;
 
-            int fieldIndex = 0;
             for (int i = 0; i < sf.NumShapes; i++)
             {
-                Shape shp = sf.Shape[i];
-                string text = sf.CellValue[fieldIndex, i].ToString();
-                Point pnt = shp.Centroid;
-                sf.Labels.AddLabel(text, pnt.x, pnt.y, 0.0, -1);
-            }
+                string text = sf.Table.CellValue[1, i].ToString();
+                double x = sf.Shape[i].Center.x;
+                double y = sf.Shape[i].Center.y;
 
+                if (Settings.centrerLabel)
+                {
+                    x = x - text.Length * 500;
+                    y = y + 1500;
+                }
+
+                sf.Labels.AddLabel(text, x, y);
+            }
             sf.Labels.Synchronized = true;
         }
 
@@ -167,7 +154,7 @@ namespace EventCartoViewer
         {
             Shapefile sfArea = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerArea));
 
-            double distance = 800; //metres
+            double distance = Settings.tailleBuffer; //metres
             Shapefile sfBuffer = sfArea.BufferByDistance(distance, 30, false, true);
 
             var utils = new Utils();
@@ -178,7 +165,6 @@ namespace EventCartoViewer
             int layerBuffer = axMap1.AddLayer(sfBuffer, true);
             axMap1.MoveLayer(layerBuffer, layerArea);
         }
-
 
         /// <summary>
         /// Supprime tous les vecteurs affichés
@@ -220,6 +206,5 @@ namespace EventCartoViewer
 
             //MessageBox.Show(Util.ConvertLatLongToMGRS(currentX, currentY));
         }
-
     }
 }

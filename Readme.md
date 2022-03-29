@@ -12,12 +12,5 @@ style = dégradé ?
 
 Afficher valeurs min/max et start/end du slider
 
-surface et line
-- créer dans l'ordre des points (ordre gdh)
-- relier les points extérieur
 
-options pour l'affichage des labels ?
-- position
-- mise en forme
 
-enable buffer ou non
