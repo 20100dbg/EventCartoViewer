@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:globalmapper="http://www.bluemarblegeo.com/globalmapper">
+<Document>
+  <!-- Begin Style Definitions -->
+  <Style id="point1">
+    <IconStyle><Icon><href>kml_symbol_dot_0.png</href></Icon></IconStyle>
+  </Style>
+  <Folder>
+    <name>Point Features</name>
+    <description>Point Features</description>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1152026855,48.9951325842,-999999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1355971841,48.9827234538,-999999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1560621762,48.9989781852,-999999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1515915528,48.9889764735,-999999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1710424804,48.9864761374,-999999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1592360402,48.9746718851,-999999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1148681259,48.9662733167,-999999</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <description>Unknown Point Feature</description>
+      <styleUrl>#point1</styleUrl>
+      <Point>
+        <altitudeMode>clampToGround</altitudeMode>
+        <extrude>0</extrude>
+        <coordinates>7.1054132375,48.9829810115,-999999</coordinates>
+      </Point>
+    </Placemark>
+  </Folder>
+</Document>
+</kml>

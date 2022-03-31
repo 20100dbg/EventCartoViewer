@@ -9,13 +9,14 @@ namespace EventCartoViewer
         static int layerLine = -1;
         static int layerPoint = -1;
         static int layerArea = -1;
-        //static int layerBuffer = -1;
+        static int layerBuffer = -1;
+
         static AxMap axMap1;
 
         public static void Init(AxMap mapObj)
         {
             axMap1 = mapObj;
-        
+
             axMap1.Clear();
             axMap1.TileProvider = tkTileProvider.ProviderNone;
             axMap1.CursorMode = tkCursorMode.cmPan;
@@ -40,27 +41,28 @@ namespace EventCartoViewer
 
         public static void InitShapeFiles()
         {
+            Utils utils = new Utils();
+
+            //area
             Shapefile sf = new Shapefile();
             sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYGON);
             layerArea = axMap1.AddLayer(sf, true);
 
-            ColorScheme scheme = new ColorScheme();
-            scheme.SetColors2(tkMapColor.Wheat, tkMapColor.Salmon);
-            sf.Categories.ApplyColorScheme(tkColorSchemeType.ctSchemeGraduated, scheme);
+            sf.DefaultDrawingOptions.FillBgColor = utils.ColorByName(tkMapColor.Blue);
+            sf.DefaultDrawingOptions.FillTransparency = 100f;
 
+            //line
             sf = new Shapefile();
             sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYLINE);
             layerLine = axMap1.AddLayer(sf, true);
 
-            Utils utils = new Utils();
             LinePattern pattern = new LinePattern();
-            pattern.AddLine(utils.ColorByName(tkMapColor.Black), 1.0f, tkDashStyle.dsSolid);
-            
-            ShapefileCategory ct = sf.Categories.Add("TirGonio");
-            ct.DrawingOptions.LinePattern = pattern;
-            ct.DrawingOptions.UseLinePattern = true;
-            
+            pattern.AddLine(utils.ColorByName(tkMapColor.Blue), 1.5f, tkDashStyle.dsSolid);
 
+            sf.DefaultDrawingOptions.LinePattern = pattern;
+            sf.DefaultDrawingOptions.UseLinePattern = true;
+
+            //point
             sf = new Shapefile();
             sf.CreateNewWithShapeID("", ShpfileType.SHP_POINT);
 
@@ -74,7 +76,7 @@ namespace EventCartoViewer
             layerPoint = axMap1.AddLayer(sf, true);
 
             sf.DefaultDrawingOptions.PointType = tkPointSymbolType.ptSymbolStandard;
-            sf.DefaultDrawingOptions.FillColor = utils.ColorByName(tkMapColor.Black);
+            sf.DefaultDrawingOptions.FillColor = utils.ColorByName(tkMapColor.Blue);
             sf.DefaultDrawingOptions.PointSize = 8.0f;
             sf.CollisionMode = tkCollisionMode.AllowCollisions;
         }
@@ -150,6 +152,7 @@ namespace EventCartoViewer
             sf.Labels.Synchronized = true;
         }
 
+
         public static void SetBuffer()
         {
             Shapefile sfArea = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerArea));
@@ -157,13 +160,16 @@ namespace EventCartoViewer
             double distance = Settings.tailleBuffer; //metres
             Shapefile sfBuffer = sfArea.BufferByDistance(distance, 30, false, true);
 
-            var utils = new Utils();
             sfBuffer.DefaultDrawingOptions.LineWidth = 1.0f;
-            sfBuffer.DefaultDrawingOptions.LineColor = utils.ColorByName(tkMapColor.Blue);
-            sfBuffer.DefaultDrawingOptions.FillBgColor = utils.ColorByName(tkMapColor.LightBlue);
+            sfBuffer.DefaultDrawingOptions.LineColor = 16711680; //blue
+            sfBuffer.DefaultDrawingOptions.FillBgColor = 15128749; //lightblue
+            sfBuffer.DefaultDrawingOptions.FillTransparency = 100f;
 
-            int layerBuffer = axMap1.AddLayer(sfBuffer, true);
-            axMap1.MoveLayer(layerBuffer, layerArea);
+            if (layerBuffer != -1)
+                axMap1.RemoveLayer(axMap1.get_LayerHandle(layerBuffer));
+
+            layerBuffer = axMap1.AddLayer(sfBuffer, true);
+
         }
 
         /// <summary>

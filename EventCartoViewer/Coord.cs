@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace EventCartoViewer
 {
@@ -15,15 +16,72 @@ namespace EventCartoViewer
         public double Y { get; set; }
         public double X { get; set; }
 
-        public static int TriCoord(EventCoord x, EventCoord y)
+        private static EventCoord ecCenter = new EventCoord { X = 0, Y = 0 };
+
+        public static List<EventCoord> TriRandom(List<EventCoord> ecs)
         {
-            if (x.Y > y.Y) return -1;
-            else
+            Random rnd = new Random();
+            List<EventCoord> ecsDest = new List<EventCoord>();
+
+            do
             {
-                if (x.X > y.X) return -1;
-                else if (x.X < y.X) return 1;
-                else return 0;
-            }
+                int idx = rnd.Next(0, ecs.Count);
+                ecsDest.Add(ecs[idx]);
+                ecs.RemoveAt(idx);
+
+            } while (ecs.Count > 0);
+            
+            return ecsDest;
         }
+
+        public static List<EventCoord> TriCoord(List<EventCoord> ecs)
+        {
+            ecCenter.X = ecCenter.Y = 0;
+
+            //Get center
+            for (int i = 0; i < ecs.Count; i++)
+            {
+                ecCenter.X += ecs[i].X;
+                ecCenter.Y += ecs[i].Y;
+            }
+            ecCenter.X = ecCenter.X / ecs.Count;
+            ecCenter.Y = ecCenter.Y / ecs.Count;
+
+
+            ecs.Sort(ComparePoints);
+            return ecs;
+        }
+
+        private static int ComparePoints(EventCoord ec1, EventCoord ec2)
+        {
+            double a1 = GetAngle(ecCenter, ec1);
+            double a2 = GetAngle(ecCenter, ec2);
+
+            if (a1 < a2) return 1;
+
+            double d1 = GetDistance(ecCenter, ec1);
+            double d2 = GetDistance(ecCenter, ec2);
+
+            if (a1 == a2 && d1 < d2) return 1;
+            return -1;
+        }
+
+        private static double GetAngle(EventCoord ecCenter, EventCoord ec)
+        {
+            double x = ec.X - ecCenter.X;
+            double y = ec.Y - ecCenter.Y;
+
+            double a = Math.Atan2(x, y);
+            if (a <= 0) a = 2 * Math.PI + a;
+            return a;
+        }
+
+        private static double GetDistance(EventCoord ec1, EventCoord ec2)
+        {
+            double x = ec1.X - ec2.X;
+            double y = ec1.Y - ec2.Y;
+            return Math.Sqrt(x * x + y * y);
+        }
+
     }
 }

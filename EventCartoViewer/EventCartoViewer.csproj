@@ -58,10 +58,13 @@
     </Reference>
     <Reference Include="SliderControl">
       <HintPath>.\SliderControl.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.CSharp">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />

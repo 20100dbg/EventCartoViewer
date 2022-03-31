@@ -33,14 +33,15 @@ namespace EventCartoViewer
 
         public void test()
         {
+            /*
             int val = 35;
             int minVal = 1;
             int maxVal = 300;
 
             double nuance = Util.GetRapport(val, minVal, maxVal, 1025);
             Color c = Util.GetColorFromNuance(nuance, 255);
+            */
         }
-
 
         public void Init()
         {
@@ -119,10 +120,14 @@ namespace EventCartoViewer
             Settings.WriteConfigFile();
         }
 
-            private void b_test_Click(object sender, EventArgs e)
+        private void b_test_Click(object sender, EventArgs e)
         {
+            Carto.ClearCarto();
+
+            /*
             Configuration c = new Configuration();
             c.Show();
+            */
         }
 
         private void b_applyCarto_Click(object sender, EventArgs e)
@@ -151,16 +156,11 @@ namespace EventCartoViewer
             GetPoints();
         }
 
-        long refTicks = 0;
-        long delay = 50000;
 
         private void GetPoints()
         {
+            Carto.ClearCarto();
             if (events.Count == 0) return;
-
-            long nowTicks = DateTime.Now.Ticks;
-            if (nowTicks < refTicks + delay) return;
-            refTicks = nowTicks;
 
             int val = s.CurrentValue;
             int span = s.CurrentSpan;
@@ -174,8 +174,6 @@ namespace EventCartoViewer
 
             List<EventShape> aDessiner = new List<EventShape>();
 
-            Carto.ClearCarto();
-
             for (int i = 0; i < events.Count; i++)
             {
                 if ((events[i].GdhDebut >= dtStart && events[i].GdhDebut <= dtFin) ||
@@ -188,18 +186,21 @@ namespace EventCartoViewer
                         Carto.DrawPoint(events[i].Coordinates[j], events[i].Label);
                     }
 
-                    if (events[i].TypeForme == 2) Carto.DrawLine(events[i].Coordinates);
+                    if (events[i].TypeForme == 2)
+                    {
+                        Carto.DrawLine(events[i].Coordinates);
+                    }
                     else if (events[i].TypeForme == 3)
                     {
                         Carto.DrawArea(events[i].Coordinates);
-
-                        if (Settings.afficherBuffer)
-                            Carto.SetBuffer();
                     }
 
                     aDessiner.Add(events[i]);
                 }
             }
+
+            if (Settings.afficherBuffer)
+                Carto.SetBuffer();
 
             if (Settings.afficherLabel)
                 Carto.GenerateLabels();
@@ -290,14 +291,18 @@ namespace EventCartoViewer
             while ((line = sr.ReadLine()) != null)
             {
                 string[] tab = line.Split(new char[] { ';' });
+
+                string sX = Util.FixDecSeparator(tab[0]);
+                string sY = Util.FixDecSeparator(tab[1]);
+
                 eventsFile.Add(new EventShape
                 {
                     Id = eventsFile.Count,
                     Coordinates = new List<EventCoord>() {
                         new EventCoord
                         {
-                            X = double.Parse(tab[0]),
-                            Y = double.Parse(tab[1])
+                            X = double.Parse(sX),
+                            Y = double.Parse(sY)
                         } },
                     Label = tab[3],
                     Description = tab[3],
@@ -325,7 +330,6 @@ namespace EventCartoViewer
                 string[] tab = line.Split(new char[] { ';' });
                 string coord = tab[0];
                 int idEvent = int.Parse(tab[5]);
-                int typeForme = 0;
 
                 EventShape es = new EventShape
                 {
@@ -340,43 +344,47 @@ namespace EventCartoViewer
 
                 if (coord.StartsWith("\"POLYGON"))
                 {
-                    typeForme = 3;
+                    es.TypeForme = 3;
                     coord = coord.Substring(10, coord.Length - 13);
                     string[] tabCoord = coord.Split(new string[] { "," }, StringSplitOptions.None);
+                    List<EventCoord> ecTmp = new List<EventCoord>();
 
                     for (int i = 0; i < tabCoord.Length; i++)
                     {
                         string[] tabtmp = tabCoord[i].Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-                        es.Coordinates.Add(new EventCoord
+                        ecTmp.Add(new EventCoord
                         {
                             X = double.Parse(Util.FixDecSeparator(tabtmp[0])),
                             Y = double.Parse(Util.FixDecSeparator(tabtmp[1]))
                         });
                     }
-                    es.Coordinates.Sort(EventCoord.TriCoord);
+
+                    if (Settings.triCoordSurface) es.Coordinates.AddRange(EventCoord.TriCoord(ecTmp));
+                    else es.Coordinates.AddRange(ecTmp);
                 }
                 else if (coord.StartsWith("\"LINESTRING"))
                 {
-                    typeForme = 2;
+                    es.TypeForme = 2;
                     coord = coord.Substring(12, coord.Length - 14);
                     string[] tabCoord = coord.Split(new string[] { "," }, StringSplitOptions.None);
+                    List<EventCoord> ecTmp = new List<EventCoord>();
 
                     for (int i = 0; i < tabCoord.Length; i++)
                     {
                         string[] tabtmp = tabCoord[i].Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-                        es.Coordinates.Add(new EventCoord
+                        
+                        ecTmp.Add(new EventCoord
                         {
                             X = double.Parse(Util.FixDecSeparator(tabtmp[0])),
                             Y = double.Parse(Util.FixDecSeparator(tabtmp[1]))
                         });
                     }
 
-                    if (Settings.triCoordSurface)
-                        es.Coordinates.Sort(EventCoord.TriCoord);
+                    es.Coordinates.AddRange(ecTmp);
                 }
                 else if (coord.StartsWith("\"POINT"))
                 {
-                    typeForme = 1;
+                    es.TypeForme = 1;
                     coord = coord.Substring(7, coord.Length - 9);
                     string[] tabtmp = coord.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -387,7 +395,6 @@ namespace EventCartoViewer
                     });
                 }
 
-                es.TypeForme = typeForme;
                 eventsFile.Add(es);
             }
             sr.Close();
@@ -419,9 +426,9 @@ namespace EventCartoViewer
         }
         #endregion
 
-        
-        int[] tabUnit = new int[] { 1, 60, 24, 30, 12, 1 };
-        int idxTabUnit = -1;
+
+        int[] tabUnit = new int[] { 1, 60, 60, 24, 30 };
+        int idxTabUnit = 0;
         DateTime gdhMin = DateTime.MaxValue, gdhMax = DateTime.MinValue;
 
         private void GetTimeUnit()
@@ -436,22 +443,26 @@ namespace EventCartoViewer
                 if (gdhMax < events[i].GdhFin) gdhMax = events[i].GdhFin;
             }
             TimeSpan ts = gdhMax - gdhMin;
-            double nb = ts.TotalSeconds;
 
-            int delta = (int)(nb * 0.05);
+            int delta = (int)(ts.TotalSeconds * 0.05);
             gdhMin = gdhMin.Subtract(new TimeSpan(0, 0, delta));
             gdhMax = gdhMax.AddSeconds(delta);
 
-            idxTabUnit = -1;
-            while (nb > seuil && idxTabUnit < tabUnit.Length)
+            ts = gdhMax - gdhMin;
+            double nb = ts.TotalSeconds;
+
+            idxTabUnit = 0;
+            for (int i = 0; i < tabUnit.Length - 1; i++)
             {
-                nb = nb / tabUnit[++idxTabUnit];
+                nb = nb / tabUnit[idxTabUnit + 1];
+                if (nb < seuil) break;
+                idxTabUnit++;
             }
         }
         
         private double GetSecondsToUnits(double seconds)
         {
-            for (int i = 0; i < idxTabUnit; i++)
+            for (int i = 0; i < idxTabUnit + 1; i++)
                 seconds = seconds / tabUnit[i];
 
             return seconds;
@@ -459,7 +470,7 @@ namespace EventCartoViewer
 
         private double GetUnitsToSeconds(double units)
         {
-            for (int i = 0; i < idxTabUnit; i++)
+            for (int i = 0; i < idxTabUnit + 1; i++)
                 units = units * tabUnit[i];
 
             return units;

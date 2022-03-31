@@ -8,7 +8,7 @@ namespace EventCartoViewer
     {
         static string ConFile = "EventCartoViewer.config.txt";
         public static string version = "0.0.2";
-        public static string dateVersion = "28/03/2022";
+        public static string dateVersion = "31/03/2022";
         
         public static List<string> cartes;
         public static int niveauZoomCentrer;
