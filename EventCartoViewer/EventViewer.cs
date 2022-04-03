@@ -122,12 +122,7 @@ namespace EventCartoViewer
 
         private void b_test_Click(object sender, EventArgs e)
         {
-            Carto.ClearCarto();
 
-            /*
-            Configuration c = new Configuration();
-            c.Show();
-            */
         }
 
         private void b_applyCarto_Click(object sender, EventArgs e)
@@ -154,6 +149,8 @@ namespace EventCartoViewer
         private void S_SpanResizing(object sender, SpanResizedEventArgs e)
         {
             GetPoints();
+
+            l_unite.Text = s.CurrentSpan + " " + GetTimeUnitStr();
         }
 
 
@@ -198,6 +195,8 @@ namespace EventCartoViewer
                     aDessiner.Add(events[i]);
                 }
             }
+
+            //Carto.SetHeatmap();
 
             if (Settings.afficherBuffer)
                 Carto.SetBuffer();
@@ -420,16 +419,24 @@ namespace EventCartoViewer
                 events = ReadWKT(datafile);
             }
 
+            
             GetTimeUnit();
+            l_unite.Text = s.CurrentSpan + " " + GetTimeUnitStr();
             SetSlider();
             GetPoints();
         }
         #endregion
 
 
+        string[] tabUnitStr = new string[] { "secondes", "minutes", "heures", "jours", "mois" };
         int[] tabUnit = new int[] { 1, 60, 60, 24, 30 };
         int idxTabUnit = 0;
         DateTime gdhMin = DateTime.MaxValue, gdhMax = DateTime.MinValue;
+
+        private string GetTimeUnitStr()
+        {
+            return tabUnitStr[idxTabUnit];
+        }
 
         private void GetTimeUnit()
         {
@@ -484,6 +491,8 @@ namespace EventCartoViewer
             s.Minimum = 0;
             s.Maximum = (int)Math.Ceiling(test);
             s.LargeChange = (int)(s.Maximum * 0.1);
+
+            s.SetSpan((int)(s.Maximum * 0.05));
         }
         
     }

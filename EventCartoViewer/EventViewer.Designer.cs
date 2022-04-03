@@ -35,6 +35,7 @@
             this.b_applyCarto = new System.Windows.Forms.Button();
             this.b_test = new System.Windows.Forms.Button();
             this.l_currentValue = new System.Windows.Forms.Label();
+            this.l_unite = new System.Windows.Forms.Label();
             this.axMap1 = new AxMapWinGIS.AxMap();
             ((System.ComponentModel.ISupportInitialize)(this.axMap1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
@@ -68,19 +69,19 @@
             // 
             // b_loadData
             // 
-            this.b_loadData.Location = new System.Drawing.Point(882, 441);
+            this.b_loadData.Location = new System.Drawing.Point(882, 400);
             this.b_loadData.Name = "b_loadData";
-            this.b_loadData.Size = new System.Drawing.Size(113, 29);
+            this.b_loadData.Size = new System.Drawing.Size(113, 35);
             this.b_loadData.TabIndex = 63;
-            this.b_loadData.Text = "Load data";
+            this.b_loadData.Text = "Charger des données";
             this.b_loadData.UseVisualStyleBackColor = true;
             this.b_loadData.Click += new System.EventHandler(this.b_loadData_Click);
             // 
             // b_applyCarto
             // 
-            this.b_applyCarto.Location = new System.Drawing.Point(882, 220);
+            this.b_applyCarto.Location = new System.Drawing.Point(860, 220);
             this.b_applyCarto.Name = "b_applyCarto";
-            this.b_applyCarto.Size = new System.Drawing.Size(113, 29);
+            this.b_applyCarto.Size = new System.Drawing.Size(135, 29);
             this.b_applyCarto.TabIndex = 63;
             this.b_applyCarto.Text = "Appliquer carto";
             this.b_applyCarto.UseVisualStyleBackColor = true;
@@ -95,15 +96,25 @@
             this.b_test.Text = "test";
             this.b_test.UseVisualStyleBackColor = true;
             this.b_test.Click += new System.EventHandler(this.b_test_Click);
+            this.b_test.Visible = false;
             // 
             // l_currentValue
             // 
             this.l_currentValue.AutoSize = true;
-            this.l_currentValue.Location = new System.Drawing.Point(480, 450);
-            this.l_currentValue.Name = "label5";
+            this.l_currentValue.Location = new System.Drawing.Point(465, 455);
+            this.l_currentValue.Name = "l_currentValue";
             this.l_currentValue.Size = new System.Drawing.Size(44, 13);
             this.l_currentValue.TabIndex = 99;
             this.l_currentValue.Text = "Valeur";
+            // 
+            // l_unite
+            // 
+            this.l_unite.AutoSize = true;
+            this.l_unite.Location = new System.Drawing.Point(580, 455);
+            this.l_unite.Name = "l_unite";
+            this.l_unite.Size = new System.Drawing.Size(44, 13);
+            this.l_unite.TabIndex = 99;
+            this.l_unite.Text = "Unite";
             // 
             // Form1
             // 
@@ -116,9 +127,10 @@
             this.Controls.Add(this.b_loadData);
             this.Controls.Add(this.b_applyCarto);
             this.Controls.Add(this.l_currentValue);
+            this.Controls.Add(this.l_unite);
             this.Controls.Add(this.axMap1);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "EventViewer";
+            this.Text = "EventViewer";
             ((System.ComponentModel.ISupportInitialize)(this.axMap1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             this.ResumeLayout(false);
@@ -132,6 +144,7 @@
         private AxMapWinGIS.AxMap axMap1;
         private System.Windows.Forms.Button b_test;
         private System.Windows.Forms.Label l_currentValue;
+        private System.Windows.Forms.Label l_unite;
         #endregion
 
     }

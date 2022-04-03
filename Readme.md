@@ -12,8 +12,9 @@ style = dégradé ?
 
 Afficher valeurs min/max et start/end du slider
 
-
 gestion de profil ?
 - présence entete
 - séparatif colonnes
 - colonnes X, Y, GDH, Label [gdh fin, description, idEvent]
+
+Générer une carte de chaleur

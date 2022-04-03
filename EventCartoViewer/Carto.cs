@@ -169,6 +169,52 @@ namespace EventCartoViewer
                 axMap1.RemoveLayer(axMap1.get_LayerHandle(layerBuffer));
 
             layerBuffer = axMap1.AddLayer(sfBuffer, true);
+        }
+
+        static int layerHeatmap = -1;
+
+        public static void SetHeatmap()
+        {
+            Shapefile sfPoint = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
+            //Shapefile sfHeatmap = new Shapefile();
+            double distance = 500; //metres
+
+            //parcours des points
+            //sfHeatmap = sfPoint.BufferByDistance(distance, 30, false, true);
+
+            /*
+            for (int j = 0; j < sfPoint.NumShapes; j++)
+            {
+                Shape s = sfPoint.Shape[j].BufferWithParams(distance);
+                int idx = sfHeatmap.NumShapes;
+                sfHeatmap.EditInsertShape(s, ref idx);
+            }
+            */
+
+            Shapefile sfHeatmap = sfPoint.BufferByDistance(distance, 30, false, true);
+
+            sfHeatmap.DefaultDrawingOptions.LineWidth = 0f;
+            sfHeatmap.DefaultDrawingOptions.FillBgColor = 15128749; //lightblue
+            sfHeatmap.DefaultDrawingOptions.FillTransparency = 100f;
+
+            if (layerHeatmap != -1)
+                axMap1.RemoveLayer(axMap1.get_LayerHandle(layerHeatmap));
+
+            layerHeatmap = axMap1.AddLayer(sfHeatmap, true);
+        }
+
+
+        public static void DrawCircle(double x, double y)
+        {
+            // ??
+            layerHeatmap = axMap1.NewDrawing(tkDrawReferenceList.dlSpatiallyReferencedList);
+
+            double r = 0;
+            uint color = 0;
+            axMap1.DrawCircleEx(layerHeatmap, x, y, r, color, true, 80);
+
+            //ShapeDrawingOptions s = new ShapeDrawingOptions();
+
 
         }
 
