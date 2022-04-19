@@ -12,6 +12,7 @@ namespace EventCartoViewer
         Slider s;
         List<EventShape> events = new List<EventShape>();
 
+
         public EventViewer()
         {
             InitializeComponent();
@@ -20,14 +21,29 @@ namespace EventCartoViewer
             Settings.ReadConfigFile();
 
             s = new Slider(this.Controls, new Point(40, 450), new Size(400, 22), 0, 100);
-            s.TickRate = 50;
+            s.TickRate = 40;
             s.SpanMoving += S_SpanMoving;
             s.SpanMoved += S_SpanMoving;
             s.SpanResizing += S_SpanResizing;
             s.SpanResized += S_SpanResizing;
 
+            InitStyles();
             Init();
             InitDgv();
+        }
+
+        public void InitStyles()
+        {
+            Carto.styles.Add(new StyleCouche { Nom = "PointDefaut", PointTaille = 8.5f, PointCouleur = MapWinGIS.tkMapColor.Black, Image = null, TypeShapefile = TypeShapefile.Point });
+            Carto.styles.Add(new StyleCouche { Nom = "LigneDefaut", LigneTaille = 1.5f, LigneCouleur = MapWinGIS.tkMapColor.Black, LigneStyle = MapWinGIS.tkDashStyle.dsSolid, TypeShapefile = TypeShapefile.Ligne });
+            Carto.styles.Add(new StyleCouche { Nom = "SurfaceDefaut", SurfaceCouleur = MapWinGIS.tkMapColor.Blue, SurfaceTransparence = 100f, TypeShapefile = TypeShapefile.Surface });
+
+            Carto.styles.Add(new StyleCouche { Nom = "AMI", PointTaille = 8.5f, PointCouleur = MapWinGIS.tkMapColor.Blue, Image = null, TypeShapefile = TypeShapefile.Point });
+            Carto.styles.Add(new StyleCouche { Nom = "ENI", PointTaille = 8.5f, PointCouleur = MapWinGIS.tkMapColor.Red, Image = null, TypeShapefile = TypeShapefile.Point });
+
+            Carto.styles.Add(new StyleCouche { Nom = "FLOT", LigneTaille = 1.5f, LigneCouleur = MapWinGIS.tkMapColor.Red, LigneStyle = MapWinGIS.tkDashStyle.dsDash, TypeShapefile = TypeShapefile.Ligne });
+            Carto.styles.Add(new StyleCouche { Nom = "Surface 1", SurfaceCouleur = MapWinGIS.tkMapColor.Blue, SurfaceTransparence = 100f, TypeShapefile = TypeShapefile.Surface });
+            Carto.styles.Add(new StyleCouche { Nom = "Surface 2", SurfaceCouleur = MapWinGIS.tkMapColor.RosyBrown, SurfaceTransparence = 100f, TypeShapefile = TypeShapefile.Surface });
         }
 
 
@@ -50,6 +66,8 @@ namespace EventCartoViewer
 
             //charge la carto
             Carto.Init(axMap1);
+
+            Carto.InitStyleLayers(Carto.styles);
         }
 
         #region dgv
@@ -75,7 +93,6 @@ namespace EventCartoViewer
             for (int i = 0; i < events.Count; i++)
             {
                 dgv.Rows.Add(new string[] {
-                    events[i].Id.ToString(),
                     events[i].GdhDebut.ToString(),
                     events[i].GdhFin.ToString(),
                     events[i].Label,
@@ -86,8 +103,10 @@ namespace EventCartoViewer
 
         private void SelectDGV(List<EventShape> events)
         {
+            /*
             for (int i = 0; i < dgv.Rows.Count; i++)
                 dgv.Rows[i].Selected = (events.Exists((x) => x.Id == (int)dgv[0, i].Value));
+            */
         }
         #endregion
 
@@ -130,7 +149,9 @@ namespace EventCartoViewer
             SaveCarto();
 
             Carto.Init(axMap1);
-            
+
+            Carto.InitStyleLayers(Carto.styles);
+
             GetPoints();
         }
 
@@ -154,10 +175,22 @@ namespace EventCartoViewer
         }
 
 
+        private int GetLayerWithStyle(string nomStyle)
+        {
+            StyleCouche sc = Carto.styles.Find((x) => { return x.Nom == nomStyle; });
+
+            return Carto.couches.FindIndex((x) =>
+            {
+                return x.Style == sc;
+            });
+        }
+
         private void GetPoints()
         {
-            Carto.ClearCarto();
+            Carto.ClearCarto(Carto.couches);
             if (events.Count == 0) return;
+
+            int xgikdzakdacec = Carto.styles.Count;
 
             int val = s.CurrentValue;
             int span = s.CurrentSpan;
@@ -177,32 +210,39 @@ namespace EventCartoViewer
                     (events[i].GdhFin >= dtStart && events[i].GdhFin <= dtFin) ||
                     (events[i].GdhDebut <= dtStart && events[i].GdhFin >= dtFin))
                 {
+                    int x = GetLayerWithStyle(events[i].NomStyle);
+                    if (x == -1)
+                    {
+                        if (events[i].TypeShapefile == TypeShapefile.Point) x = Constantes.DEFAUT_POINT;
+                        else if (events[i].TypeShapefile == TypeShapefile.Ligne) x = Constantes.DEFAUT_LIGNE;
+                        else if (events[i].TypeShapefile == TypeShapefile.Surface) x = Constantes.DEFAUT_SURFACE;
+                    }
+                    int layer = Carto.couches[x].IdLayer;
+
                     //on dessine toujours les points
                     for (int j = 0; j < events[i].Coordinates.Count; j++)
                     {
-                        Carto.DrawPoint(events[i].Coordinates[j], events[i].Label);
+                        // 0 = style par défaut
+                        int tmpLayer = ((events[i].TypeShapefile == TypeShapefile.Point) ? layer : Carto.couches[Constantes.DEFAUT_POINT].IdLayer);
+                        Carto.DrawPoint(events[i].Coordinates[j], events[i].Label, tmpLayer);
                     }
 
-                    if (events[i].TypeForme == 2)
+                    if (events[i].TypeShapefile == TypeShapefile.Ligne)
                     {
-                        Carto.DrawLine(events[i].Coordinates);
+                        Carto.DrawLine(events[i].Coordinates, layer);
                     }
-                    else if (events[i].TypeForme == 3)
+                    else if (events[i].TypeShapefile == TypeShapefile.Surface)
                     {
-                        Carto.DrawArea(events[i].Coordinates);
+                        Carto.DrawArea(events[i].Coordinates, layer);
                     }
 
                     aDessiner.Add(events[i]);
                 }
             }
 
-            //Carto.SetHeatmap();
+            if (Settings.afficherBuffer) Carto.SetBuffer();
 
-            if (Settings.afficherBuffer)
-                Carto.SetBuffer();
-
-            if (Settings.afficherLabel)
-                Carto.GenerateLabels();
+            if (Settings.afficherLabel) Carto.GenerateLabels();
 
             FillDgv(aDessiner);
             axMap1.Redraw();
@@ -215,107 +255,15 @@ namespace EventCartoViewer
             string[] entetes = sr.ReadLine().Split(new char[] { ';' });
 
             List<EventShape> events;
-            if (entetes.Length == 4) events = ReadCSVmin(sr);
-            else if (entetes.Length == 8) events = ReadFileToEvents(sr);
+            if (entetes.Length == 5) events = ReadCSVmin(sr);
+            else if (entetes.Length == 7) events = ReadCSVcomplet(sr);
             else events = new List<EventShape>();
 
             sr.Close();
             return events;
         }
 
-        private List<EventShape> ReadFileToEvents(StreamReader sr)
-        {
-            List<EventShape> eventsFile = new List<EventShape>();
-
-            string line;
-            while ((line = sr.ReadLine()) != null)
-            {
-                string[] tab = line.Split(new char[] { ';' });
-                int idEvent = int.Parse(tab[6]);
-
-                EventShape es = new EventShape
-                {
-                    Id = idEvent,
-                    Label = tab[4],
-                    GdhDebut = DateTime.Parse(tab[2]),
-                    GdhFin = DateTime.Parse(tab[3]),
-                    Description = tab[5],
-                    Coordinates = new List<EventCoord>(),
-                    TypeForme = int.Parse(tab[7]),
-                    Style = StyleToColor(idEvent)
-                };
-
-                es.Coordinates.Add(new EventCoord { 
-                    X = double.Parse(tab[0]),
-                    Y = double.Parse(tab[1])
-                });
-
-                eventsFile.Add(es);
-            }
-            sr.Close();
-
-
-            List<EventShape> final = new List<EventShape>();
-
-            for (int i = 0; i < eventsFile.Count; i++)
-            {
-                EventShape es = (EventShape)eventsFile[i].Clone();
-
-                if (i < eventsFile.Count - 1)
-                {
-                    List<EventShape> tmp = eventsFile.GetRange(i + 1, eventsFile.Count - i - 2).FindAll((x) =>
-                        {
-                            return x.Id == eventsFile[i].Id && x.GdhDebut == eventsFile[i].GdhDebut
-                                    && x.GdhFin == eventsFile[i].GdhFin;
-                        });
-
-                    for (int j = tmp.Count - 1; j >= 0; j--)
-                    {
-                        es.Coordinates.AddRange(tmp[j].Coordinates);
-                        tmp.RemoveAt(i);
-                    }
-                }
-
-                final.Add(es);
-            }
-
-            return final;
-        }
-
-        private List<EventShape> ReadCSVmin(StreamReader sr)
-        {
-            List<EventShape> eventsFile = new List<EventShape>();
-
-            string line;
-            while ((line = sr.ReadLine()) != null)
-            {
-                string[] tab = line.Split(new char[] { ';' });
-
-                string sX = Util.FixDecSeparator(tab[0]);
-                string sY = Util.FixDecSeparator(tab[1]);
-
-                eventsFile.Add(new EventShape
-                {
-                    Id = eventsFile.Count,
-                    Coordinates = new List<EventCoord>() {
-                        new EventCoord
-                        {
-                            X = double.Parse(sX),
-                            Y = double.Parse(sY)
-                        } },
-                    Label = tab[3],
-                    Description = tab[3],
-                    GdhDebut = DateTime.Parse(tab[2]),
-                    GdhFin = DateTime.Parse(tab[2]),
-                    TypeForme = 1,
-                    Style = StyleToColor(eventsFile.Count)
-                });
-            }
-
-            sr.Close();
-            return eventsFile;
-        }
-
+        
         private List<EventShape> ReadWKT(string filename)
         {
             List<EventShape> eventsFile = new List<EventShape>();
@@ -328,22 +276,20 @@ namespace EventCartoViewer
             {
                 string[] tab = line.Split(new char[] { ';' });
                 string coord = tab[0];
-                int idEvent = int.Parse(tab[5]);
 
                 EventShape es = new EventShape
                 {
-                    Id = idEvent,
                     Label = tab[3],
                     GdhDebut = DateTime.Parse(tab[1]),
                     GdhFin = DateTime.Parse(tab[2]),
                     Description = tab[4],
                     Coordinates = new List<EventCoord>(),
-                    Style = StyleToColor(idEvent)
+                    NomStyle = tab[5]
                 };
 
                 if (coord.StartsWith("\"POLYGON"))
                 {
-                    es.TypeForme = 3;
+                    es.TypeShapefile = TypeShapefile.Surface;
                     coord = coord.Substring(10, coord.Length - 13);
                     string[] tabCoord = coord.Split(new string[] { "," }, StringSplitOptions.None);
                     List<EventCoord> ecTmp = new List<EventCoord>();
@@ -363,7 +309,7 @@ namespace EventCartoViewer
                 }
                 else if (coord.StartsWith("\"LINESTRING"))
                 {
-                    es.TypeForme = 2;
+                    es.TypeShapefile = TypeShapefile.Ligne;
                     coord = coord.Substring(12, coord.Length - 14);
                     string[] tabCoord = coord.Split(new string[] { "," }, StringSplitOptions.None);
                     List<EventCoord> ecTmp = new List<EventCoord>();
@@ -383,7 +329,7 @@ namespace EventCartoViewer
                 }
                 else if (coord.StartsWith("\"POINT"))
                 {
-                    es.TypeForme = 1;
+                    es.TypeShapefile = TypeShapefile.Point;
                     coord = coord.Substring(7, coord.Length - 9);
                     string[] tabtmp = coord.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -398,6 +344,72 @@ namespace EventCartoViewer
             }
             sr.Close();
 
+            return eventsFile;
+        }
+
+        private List<EventShape> ReadCSVmin(StreamReader sr)
+        {
+            List<EventShape> eventsFile = new List<EventShape>();
+
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                string[] tab = line.Split(new char[] { ';' });
+
+                string sX = Util.FixDecSeparator(tab[0]);
+                string sY = Util.FixDecSeparator(tab[1]);
+
+                eventsFile.Add(new EventShape
+                {
+                    Coordinates = new List<EventCoord>() {
+                        new EventCoord
+                        {
+                            X = double.Parse(sX),
+                            Y = double.Parse(sY)
+                        } },
+                    Label = tab[3],
+                    Description = tab[3],
+                    GdhDebut = DateTime.Parse(tab[2]),
+                    GdhFin = DateTime.Parse(tab[2]),
+                    TypeShapefile = TypeShapefile.Point,
+                    NomStyle = tab[4]
+                });
+            }
+
+            sr.Close();
+            return eventsFile;
+        }
+
+        private List<EventShape> ReadCSVcomplet(StreamReader sr)
+        {
+            List<EventShape> eventsFile = new List<EventShape>();
+
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                string[] tab = line.Split(new char[] { ';' });
+
+                string sX = Util.FixDecSeparator(tab[0]);
+                string sY = Util.FixDecSeparator(tab[1]);
+
+                eventsFile.Add(new EventShape
+                {
+                    Coordinates = new List<EventCoord>() {
+                        new EventCoord
+                        {
+                            X = double.Parse(sX),
+                            Y = double.Parse(sY)
+                        } },
+                    GdhDebut = DateTime.Parse(tab[2]),
+                    GdhFin = DateTime.Parse(tab[3]),
+                    Label = tab[4],
+                    Description = tab[5],
+                    NomStyle = tab[6],
+                    TypeShapefile = TypeShapefile.Point
+                });
+            }
+
+            sr.Close();
             return eventsFile;
         }
 
@@ -419,7 +431,8 @@ namespace EventCartoViewer
                 events = ReadWKT(datafile);
             }
 
-            
+            if (events.Count == 0) return;
+
             GetTimeUnit();
             l_unite.Text = s.CurrentSpan + " " + GetTimeUnitStr();
             SetSlider();
@@ -492,7 +505,10 @@ namespace EventCartoViewer
             s.Maximum = (int)Math.Ceiling(test);
             s.LargeChange = (int)(s.Maximum * 0.1);
 
-            s.SetSpan((int)(s.Maximum * 0.05));
+            double xx = s.Maximum * 0.05;
+            if (xx < 1) xx = 1;
+
+            s.SetSpan((int)xx);
         }
         
     }

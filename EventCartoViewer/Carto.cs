@@ -6,12 +6,16 @@ namespace EventCartoViewer
 {
     internal static class Carto
     {
+        /*
         static int layerLine = -1;
         static int layerPoint = -1;
         static int layerArea = -1;
         static int layerBuffer = -1;
+        */
 
         static AxMap axMap1;
+        public static List<Couche> couches = new List<Couche>();
+        public static List<StyleCouche> styles = new List<StyleCouche>();
 
         public static void Init(AxMap mapObj)
         {
@@ -31,12 +35,78 @@ namespace EventCartoViewer
                 AddLayer(carteFichier);
             }
 
-            InitShapeFiles();
+            //InitListShapefile();
+            //InitShapeFiles();
         }
 
         public static void AddLayer(string filename)
         {
             axMap1.AddLayerFromFilename(filename, tkFileOpenStrategy.fosAutoDetect, true);
+        }
+
+        public static void InitStyleLayers(List<StyleCouche> styles)
+        {
+            couches.Clear();
+
+            for (int i = 0; i < styles.Count; i++)
+            {
+                Couche c = new Couche
+                {
+                    Style = styles[i],
+                    TypeShapefile = styles[i].TypeShapefile
+                };
+
+                InitSF(c);
+                couches.Add(c);
+            }
+        }
+
+        public static void InitSF(Couche c)
+        {
+            Utils utils = new Utils();
+            Shapefile sf = new Shapefile();
+
+            if (c.TypeShapefile == TypeShapefile.Point)
+            {
+                sf.CreateNewWithShapeID("", ShpfileType.SHP_POINT);
+                sf.StartEditingTable();
+                sf.EditAddField("label", FieldType.STRING_FIELD, 0, 50);
+
+                sf.Labels.FrameVisible = false;
+                sf.Labels.FontSize = 8;
+                sf.Labels.AvoidCollisions = false;
+
+                if (c.Style.Image != null)
+                {
+                    sf.DefaultDrawingOptions.PointType = tkPointSymbolType.ptSymbolPicture;
+                    sf.DefaultDrawingOptions.Picture = c.Style.Image;
+                }
+                else
+                {
+                    sf.DefaultDrawingOptions.PointType = tkPointSymbolType.ptSymbolStandard;
+                    sf.DefaultDrawingOptions.FillColor = utils.ColorByName(c.Style.PointCouleur);
+                    sf.DefaultDrawingOptions.PointSize = c.Style.PointTaille;
+                }
+
+                sf.CollisionMode = tkCollisionMode.AllowCollisions;
+            }
+            else if (c.TypeShapefile == TypeShapefile.Ligne)
+            {
+                sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYLINE);
+                LinePattern pattern = new LinePattern();
+                pattern.AddLine(utils.ColorByName(c.Style.LigneCouleur), c.Style.LigneTaille, c.Style.LigneStyle);
+                sf.DefaultDrawingOptions.LinePattern = pattern;
+                sf.DefaultDrawingOptions.UseLinePattern = true;
+            }
+            else if (c.TypeShapefile == TypeShapefile.Surface)
+            {
+                sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYGON);
+                sf.DefaultDrawingOptions.FillBgColor = utils.ColorByName(c.Style.SurfaceCouleur);
+                sf.DefaultDrawingOptions.FillTransparency = c.Style.SurfaceTransparence;
+            }
+
+            c.IdLayer = axMap1.AddLayer(sf, true);
+            c.Shapefile = sf;
         }
 
         public static void InitShapeFiles()
@@ -46,7 +116,8 @@ namespace EventCartoViewer
             //area
             Shapefile sf = new Shapefile();
             sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYGON);
-            layerArea = axMap1.AddLayer(sf, true);
+            //layerArea = axMap1.AddLayer(sf, true);
+            AddCouche(sf, TypeShapefile.Surface);
 
             sf.DefaultDrawingOptions.FillBgColor = utils.ColorByName(tkMapColor.Blue);
             sf.DefaultDrawingOptions.FillTransparency = 100f;
@@ -54,7 +125,8 @@ namespace EventCartoViewer
             //line
             sf = new Shapefile();
             sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYLINE);
-            layerLine = axMap1.AddLayer(sf, true);
+            //layerLine = axMap1.AddLayer(sf, true);
+            AddCouche(sf, TypeShapefile.Ligne);
 
             LinePattern pattern = new LinePattern();
             pattern.AddLine(utils.ColorByName(tkMapColor.Blue), 1.5f, tkDashStyle.dsSolid);
@@ -73,7 +145,8 @@ namespace EventCartoViewer
             sf.Labels.FontSize = 8;
             sf.Labels.AvoidCollisions = false;
 
-            layerPoint = axMap1.AddLayer(sf, true);
+            //layerPoint = axMap1.AddLayer(sf, true);
+            AddCouche(sf, TypeShapefile.Point);
 
             sf.DefaultDrawingOptions.PointType = tkPointSymbolType.ptSymbolStandard;
             sf.DefaultDrawingOptions.FillColor = utils.ColorByName(tkMapColor.Blue);
@@ -81,9 +154,22 @@ namespace EventCartoViewer
             sf.CollisionMode = tkCollisionMode.AllowCollisions;
         }
 
-        public static void DrawPoint(EventCoord cPoint, string label)
+        private static void AddCouche(Shapefile sf, TypeShapefile typeShapefile)
         {
-            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
+            int idLayer = axMap1.AddLayer(sf, true);
+
+            couches.Add(new Couche
+            {
+                IdLayer = idLayer,
+                Shapefile = sf,
+                Style = new StyleCouche { TypeShapefile = typeShapefile },
+                TypeShapefile = typeShapefile
+            });
+        }
+
+        public static void DrawPoint(EventCoord cPoint, string label, int layer)
+        {
+            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layer));
             Shape shp = new Shape();
             shp.Create(ShpfileType.SHP_POINT);
 
@@ -95,9 +181,9 @@ namespace EventCartoViewer
             sf.EditCellValue(1, sf.NumShapes - 1, label);
         }
 
-        public static void DrawLine(List<EventCoord> coordinates)
+        public static void DrawLine(List<EventCoord> coordinates, int layer)
         {
-            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerLine));
+            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layer));
             Shape shp = new Shape();
             shp.Create(ShpfileType.SHP_POLYLINE);
 
@@ -111,9 +197,9 @@ namespace EventCartoViewer
             sf.EditAddShape(shp);
         }
 
-        public static void DrawArea(List<EventCoord> coordinates)
+        public static void DrawArea(List<EventCoord> coordinates, int layer)
         {
-            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerArea));
+            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layer));
             Shape shp = new Shape();
             shp.Create(ShpfileType.SHP_POLYGON);
 
@@ -133,102 +219,105 @@ namespace EventCartoViewer
 
         public static void GenerateLabels()
         {
-            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
-
-            for (int i = 0; i < sf.NumShapes; i++)
+            for (int i = 0; i < couches.Count; i++)
             {
-                string text = sf.Table.CellValue[1, i].ToString();
-                double x = sf.Shape[i].Center.x;
-                double y = sf.Shape[i].Center.y;
-
-                if (Settings.centrerLabel)
+                if (couches[i].TypeShapefile == TypeShapefile.Point)
                 {
-                    x = x - text.Length * 500;
-                    y = y + 1500;
+                    Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(couches[i].IdLayer));
+
+                    for (int j = 0; j < sf.NumShapes; j++)
+                    {
+                        string text = sf.Table.CellValue[1, j].ToString();
+                        double x = sf.Shape[j].Center.x;
+                        double y = sf.Shape[j].Center.y;
+
+                        if (Settings.centrerLabel)
+                        {
+                            x = x - text.Length * 500;
+                            y = y + 1500;
+                        }
+
+                        sf.Labels.AddLabel(text, x, y);
+                    }
+                    sf.Labels.Synchronized = true;
                 }
-
-                sf.Labels.AddLabel(text, x, y);
             }
-            sf.Labels.Synchronized = true;
         }
-
 
         public static void SetBuffer()
         {
-            Shapefile sfArea = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerArea));
+            Shapefile sfBuffer = new Shapefile();
+            int x = 0;
 
-            double distance = Settings.tailleBuffer; //metres
-            Shapefile sfBuffer = sfArea.BufferByDistance(distance, 30, false, true);
+            for (int i = 0; i < couches.Count; i++)
+            {
+                if (couches[i].TypeShapefile == TypeShapefile.Surface)
+                {
+                    Shapefile sfArea = axMap1.get_Shapefile(axMap1.get_LayerHandle(couches[i].IdLayer));
 
-            sfBuffer.DefaultDrawingOptions.LineWidth = 1.0f;
-            sfBuffer.DefaultDrawingOptions.LineColor = 16711680; //blue
-            sfBuffer.DefaultDrawingOptions.FillBgColor = 15128749; //lightblue
-            sfBuffer.DefaultDrawingOptions.FillTransparency = 100f;
+                    double distance = Settings.tailleBuffer; //metres
+                    Shapefile tmpBuffer = sfArea.BufferByDistance(distance, 30, false, true);
 
-            if (layerBuffer != -1)
-                axMap1.RemoveLayer(axMap1.get_LayerHandle(layerBuffer));
+                    tmpBuffer.DefaultDrawingOptions.LineWidth = 1.0f;
+                    tmpBuffer.DefaultDrawingOptions.LineColor = 16711680; //blue
+                    tmpBuffer.DefaultDrawingOptions.FillBgColor = 15128749; //lightblue
+                    tmpBuffer.DefaultDrawingOptions.FillTransparency = 100f;
 
-            layerBuffer = axMap1.AddLayer(sfBuffer, true);
-        }
+                    sfBuffer = MergeShapefiles(sfBuffer, tmpBuffer);
+                    x += 1;
+                }
+            }
 
-        static int layerHeatmap = -1;
-
-        public static void SetHeatmap()
-        {
-            Shapefile sfPoint = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
-            //Shapefile sfHeatmap = new Shapefile();
-            double distance = 500; //metres
-
-            //parcours des points
-            //sfHeatmap = sfPoint.BufferByDistance(distance, 30, false, true);
+            if (x > 0)
+                AddCouche(sfBuffer, TypeShapefile.Buffer);
 
             /*
-            for (int j = 0; j < sfPoint.NumShapes; j++)
+            int idLayer = axMap1.AddLayer(sfBuffer, true);
+            couches.Add(new Couche
             {
-                Shape s = sfPoint.Shape[j].BufferWithParams(distance);
-                int idx = sfHeatmap.NumShapes;
-                sfHeatmap.EditInsertShape(s, ref idx);
-            }
+                IdLayer = idLayer,
+                Shapefile = sfBuffer,
+                TypeShapefile = TypeShapefile.Buffer
+            });
             */
-
-            Shapefile sfHeatmap = sfPoint.BufferByDistance(distance, 30, false, true);
-
-            sfHeatmap.DefaultDrawingOptions.LineWidth = 0f;
-            sfHeatmap.DefaultDrawingOptions.FillBgColor = 15128749; //lightblue
-            sfHeatmap.DefaultDrawingOptions.FillTransparency = 100f;
-
-            if (layerHeatmap != -1)
-                axMap1.RemoveLayer(axMap1.get_LayerHandle(layerHeatmap));
-
-            layerHeatmap = axMap1.AddLayer(sfHeatmap, true);
         }
 
-
-        public static void DrawCircle(double x, double y)
+        private static Shapefile MergeShapefiles(Shapefile s1, Shapefile s2)
         {
-            // ??
-            layerHeatmap = axMap1.NewDrawing(tkDrawReferenceList.dlSpatiallyReferencedList);
+            Shapefile result = new Shapefile();
 
-            double r = 0;
-            uint color = 0;
-            axMap1.DrawCircleEx(layerHeatmap, x, y, r, color, true, 80);
+            for (int i = 0; i < s1.NumShapes; i++)
+                result.EditAddShape(s1.Shape[i]);
 
-            //ShapeDrawingOptions s = new ShapeDrawingOptions();
+            for (int i = 0; i < s2.NumShapes; i++)
+                result.EditAddShape(s2.Shape[i]);
 
-
+            return result;
         }
+
 
         /// <summary>
         /// Supprime tous les vecteurs affichés
         /// </summary>
-        public static void ClearCarto()
+        public static void ClearCarto(List<Couche> couches)
         {
+            for (int i = 0; i < couches.Count; i++)
+            {
+                if (couches[i].IdLayer > -1)
+                {
+                    Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(couches[i].IdLayer));
+                    sf.EditClear();
+                }
+
+            }
+            /*
             Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerLine));
             sf.EditClear();
             sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
             sf.EditClear();
             sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerArea));
             sf.EditClear();
+            */
         }
 
         /// <summary>
@@ -259,4 +348,5 @@ namespace EventCartoViewer
             //MessageBox.Show(Util.ConvertLatLongToMGRS(currentX, currentY));
         }
     }
+
 }
