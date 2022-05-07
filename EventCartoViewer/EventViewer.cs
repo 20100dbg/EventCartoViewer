@@ -37,6 +37,7 @@ namespace EventCartoViewer
             Carto.styles.Add(new StyleCouche { Nom = "PointDefaut", PointTaille = 8.5f, PointCouleur = MapWinGIS.tkMapColor.Black, Image = null, TypeShapefile = TypeShapefile.Point });
             Carto.styles.Add(new StyleCouche { Nom = "LigneDefaut", LigneTaille = 1.5f, LigneCouleur = MapWinGIS.tkMapColor.Black, LigneStyle = MapWinGIS.tkDashStyle.dsSolid, TypeShapefile = TypeShapefile.Ligne });
             Carto.styles.Add(new StyleCouche { Nom = "SurfaceDefaut", SurfaceCouleur = MapWinGIS.tkMapColor.Blue, SurfaceTransparence = 100f, TypeShapefile = TypeShapefile.Surface });
+            //Carto.styles.Add(new StyleCouche { Nom = "Buffer", TypeShapefile = TypeShapefile.Buffer });
 
             Carto.styles.Add(new StyleCouche { Nom = "AMI", PointTaille = 8.5f, PointCouleur = MapWinGIS.tkMapColor.Blue, Image = null, TypeShapefile = TypeShapefile.Point });
             Carto.styles.Add(new StyleCouche { Nom = "ENI", PointTaille = 8.5f, PointCouleur = MapWinGIS.tkMapColor.Red, Image = null, TypeShapefile = TypeShapefile.Point });
@@ -240,7 +241,7 @@ namespace EventCartoViewer
                 }
             }
 
-            if (Settings.afficherBuffer) Carto.SetBuffer();
+            //if (Settings.afficherBuffer) Carto.SetBuffer();
 
             if (Settings.afficherLabel) Carto.GenerateLabels();
 

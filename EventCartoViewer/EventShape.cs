@@ -43,7 +43,7 @@ namespace EventCartoViewer
         public static int DEFAUT_POINT = 0;
         public static int DEFAUT_LIGNE = 1;
         public static int DEFAUT_SURFACE = 2;
-
+        //public static int DEFAUT_BUFFER = 3;
     }
 
 

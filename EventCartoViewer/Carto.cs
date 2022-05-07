@@ -6,12 +6,6 @@ namespace EventCartoViewer
 {
     internal static class Carto
     {
-        /*
-        static int layerLine = -1;
-        static int layerPoint = -1;
-        static int layerArea = -1;
-        static int layerBuffer = -1;
-        */
 
         static AxMap axMap1;
         public static List<Couche> couches = new List<Couche>();
@@ -104,7 +98,7 @@ namespace EventCartoViewer
                 sf.DefaultDrawingOptions.FillBgColor = utils.ColorByName(c.Style.SurfaceCouleur);
                 sf.DefaultDrawingOptions.FillTransparency = c.Style.SurfaceTransparence;
             }
-
+            
             c.IdLayer = axMap1.AddLayer(sf, true);
             c.Shapefile = sf;
         }
@@ -244,42 +238,35 @@ namespace EventCartoViewer
             }
         }
 
+
         public static void SetBuffer()
         {
-            Shapefile sfBuffer = new Shapefile();
-            int x = 0;
+            Shapefile sfToBuff = new Shapefile();
 
             for (int i = 0; i < couches.Count; i++)
             {
                 if (couches[i].TypeShapefile == TypeShapefile.Surface)
                 {
-                    Shapefile sfArea = axMap1.get_Shapefile(axMap1.get_LayerHandle(couches[i].IdLayer));
+                    int h = axMap1.get_LayerHandle(couches[i].IdLayer);
+                    Shapefile sfArea = axMap1.get_Shapefile(h);
 
-                    double distance = Settings.tailleBuffer; //metres
-                    Shapefile tmpBuffer = sfArea.BufferByDistance(distance, 30, false, true);
-
-                    tmpBuffer.DefaultDrawingOptions.LineWidth = 1.0f;
-                    tmpBuffer.DefaultDrawingOptions.LineColor = 16711680; //blue
-                    tmpBuffer.DefaultDrawingOptions.FillBgColor = 15128749; //lightblue
-                    tmpBuffer.DefaultDrawingOptions.FillTransparency = 100f;
-
-                    sfBuffer = MergeShapefiles(sfBuffer, tmpBuffer);
-                    x += 1;
+                    sfToBuff = MergeShapefiles(sfToBuff, sfArea);
                 }
             }
 
-            if (x > 0)
-                AddCouche(sfBuffer, TypeShapefile.Buffer);
+            double distance = Settings.tailleBuffer; //metres
+            Shapefile tmpBuffer = sfToBuff.BufferByDistance(distance, 30, false, true);
 
-            /*
-            int idLayer = axMap1.AddLayer(sfBuffer, true);
-            couches.Add(new Couche
-            {
-                IdLayer = idLayer,
-                Shapefile = sfBuffer,
-                TypeShapefile = TypeShapefile.Buffer
-            });
-            */
+            tmpBuffer.DefaultDrawingOptions.LineWidth = 1.0f;
+            tmpBuffer.DefaultDrawingOptions.LineColor = 16711680; //blue
+            tmpBuffer.DefaultDrawingOptions.FillBgColor = 15128749; //lightblue
+            tmpBuffer.DefaultDrawingOptions.FillTransparency = 100f;
+
+            int idLayer = axMap1.AddLayer(tmpBuffer, true);
+            int x = 1;
+
+            //AddCouche(sfBuffer, TypeShapefile.Buffer);
+            
         }
 
         private static Shapefile MergeShapefiles(Shapefile s1, Shapefile s2)
@@ -295,6 +282,18 @@ namespace EventCartoViewer
             return result;
         }
 
+        private static Shapefile MergeShapefiles(params Shapefile[] list)
+        {
+            Shapefile result = new Shapefile();
+
+            for (int i = 0; i < list.Length; i++)
+            {
+                for (int j = 0; j < list[i].NumShapes; j++)
+                    result.EditAddShape(list[i].Shape[j]);
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Supprime tous les vecteurs affichés
@@ -308,16 +307,16 @@ namespace EventCartoViewer
                     Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(couches[i].IdLayer));
                     sf.EditClear();
                 }
-
             }
-            /*
-            Shapefile sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerLine));
-            sf.EditClear();
-            sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerPoint));
-            sf.EditClear();
-            sf = axMap1.get_Shapefile(axMap1.get_LayerHandle(layerArea));
-            sf.EditClear();
-            */
+
+            //suppression de la couche buffer
+            Couche c = couches[couches.Count - 1];
+
+            if (c.TypeShapefile == TypeShapefile.Buffer)
+            {
+                axMap1.RemoveLayer(c.IdLayer);
+                couches.Remove(c);
+            }
         }
 
         /// <summary>
