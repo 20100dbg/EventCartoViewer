@@ -15,6 +15,7 @@ namespace EventCartoViewer
         public string NomStyle { get; set; }
         public TypeShapefile TypeShapefile { get; set; }
         public List<EventCoord> Coordinates { get; set; }
+        public Dictionary<int,string> KeyValues { get; set; }
 
         public static int TriGdh(EventShape x, EventShape y)
         {

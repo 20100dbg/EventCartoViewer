@@ -79,6 +79,7 @@
       <DependentUpon>Configuration.cs</DependentUpon>
     </Compile>
     <Compile Include="Coord.cs" />
+    <Compile Include="CSVreader.cs" />
     <Compile Include="EventViewer.cs">
       <SubType>Form</SubType>
     </Compile>

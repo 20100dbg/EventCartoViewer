@@ -263,7 +263,6 @@ namespace EventCartoViewer
             tmpBuffer.DefaultDrawingOptions.FillTransparency = 100f;
 
             int idLayer = axMap1.AddLayer(tmpBuffer, true);
-            int x = 1;
 
             //AddCouche(sfBuffer, TypeShapefile.Buffer);
             

@@ -29,7 +29,7 @@ namespace EventCartoViewer
 
             InitStyles();
             Init();
-            InitDgv();
+            CSVreader.InitCSVreader();
         }
 
         public void InitStyles()
@@ -48,18 +48,6 @@ namespace EventCartoViewer
         }
 
 
-        public void test()
-        {
-            /*
-            int val = 35;
-            int minVal = 1;
-            int maxVal = 300;
-
-            double nuance = Util.GetRapport(val, minVal, maxVal, 1025);
-            Color c = Util.GetColorFromNuance(nuance, 255);
-            */
-        }
-
         public void Init()
         {
             //Affiche les couches dispo
@@ -72,43 +60,41 @@ namespace EventCartoViewer
         }
 
         #region dgv
-        private void InitDgv()
+        private void InitDgv(List<Colonne> fields)
         {
-            dgv.Columns.Add("Id", "Id");
-            dgv.Columns.Add("GdhDebut", "GdhDebut");
-            dgv.Columns.Add("GdhFin", "GdhFin");
-            dgv.Columns.Add("Label", "Label");
-            dgv.Columns.Add("Description", "Description");
-
-            dgv.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            dgv.Columns[2].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            dgv.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            dgv.Columns[4].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            //DataGridViewAutoSizeColumnMode.Fill;
+            for (int i = 0; i < fields.Count; i++)
+            {
+                dgv.Columns.Add(fields[i].Nom, fields[i].Nom);
+                dgv.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
         }
 
         private void FillDgv(List<EventShape> events)
         {
             dgv.Rows.Clear();
-
+            List<string> tab = new List<string>();
+            
             for (int i = 0; i < events.Count; i++)
             {
-                dgv.Rows.Add(new string[] {
-                    events[i].GdhDebut.ToString(),
-                    events[i].GdhFin.ToString(),
-                    events[i].Label,
-                    events[i].Description,
-                });
+                tab.Clear();
+
+                tab.Add(events[i].Coordinates[0].X.ToString());
+                tab.Add(events[i].Coordinates[0].Y.ToString());
+                tab.Add(events[i].GdhDebut.ToString());
+                tab.Add(events[i].GdhFin.ToString());
+                tab.Add(events[i].Label);
+                tab.Add(events[i].Description);
+                tab.Add(events[i].NomStyle);
+
+                foreach (KeyValuePair<int,string> kv in events[i].KeyValues)
+                {
+                    tab.Add(kv.Value);
+                }
+
+                dgv.Rows.Add(tab.ToArray());
             }
         }
 
-        private void SelectDGV(List<EventShape> events)
-        {
-            /*
-            for (int i = 0; i < dgv.Rows.Count; i++)
-                dgv.Rows[i].Selected = (events.Exists((x) => x.Id == (int)dgv[0, i].Value));
-            */
-        }
         #endregion
 
 
@@ -191,16 +177,8 @@ namespace EventCartoViewer
             Carto.ClearCarto(Carto.couches);
             if (events.Count == 0) return;
 
-            int xgikdzakdacec = Carto.styles.Count;
-
-            int val = s.CurrentValue;
-            int span = s.CurrentSpan;
-
-            double valSecondes = GetUnitsToSeconds(val);
-            double spanSecondes = GetUnitsToSeconds(span);
-
-            DateTime dtStart = gdhMin.AddSeconds(valSecondes);
-            DateTime dtFin = dtStart.AddSeconds(spanSecondes);
+            DateTime dtStart = gdhMin.AddSeconds(GetUnitsToSeconds(s.CurrentValue));
+            DateTime dtFin = dtStart.AddSeconds(GetUnitsToSeconds(s.CurrentSpan));
             l_currentValue.Text = dtStart.ToString();
 
             List<EventShape> aDessiner = new List<EventShape>();
@@ -256,15 +234,28 @@ namespace EventCartoViewer
             string[] entetes = sr.ReadLine().Split(new char[] { ';' });
 
             List<EventShape> events;
+            bool isValid = CSVreader.ReadHeaders(entetes);
+
+            if (isValid)
+            {
+                InitDgv(CSVreader.fields);
+                events = CSVreader.ReadCSV(sr);
+            }
+            else
+            {
+                events = new List<EventShape>();
+            }
+
+            /*
             if (entetes.Length == 5) events = ReadCSVmin(sr);
             else if (entetes.Length == 7) events = ReadCSVcomplet(sr);
             else events = new List<EventShape>();
-
+            */
+            
             sr.Close();
             return events;
         }
 
-        
         private List<EventShape> ReadWKT(string filename)
         {
             List<EventShape> eventsFile = new List<EventShape>();
@@ -285,7 +276,8 @@ namespace EventCartoViewer
                     GdhFin = DateTime.Parse(tab[2]),
                     Description = tab[4],
                     Coordinates = new List<EventCoord>(),
-                    NomStyle = tab[5]
+                    NomStyle = tab[5],
+                    KeyValues = new Dictionary<int, string>()
                 };
 
                 if (coord.StartsWith("\"POLYGON"))
@@ -429,8 +421,11 @@ namespace EventCartoViewer
             }
             else if (datafile.EndsWith(".wkt"))
             {
+                InitDgv(CSVreader.fields);
                 events = ReadWKT(datafile);
             }
+
+            MessageBox.Show(events.Count + " evenements chargés");
 
             if (events.Count == 0) return;
 

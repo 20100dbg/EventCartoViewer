@@ -8,13 +8,7 @@ Un curseur permet de se déplacer dans le temps et d'observer l'évolution des �
 
 # Todo 
 
-style = dégradé ?
-
 Afficher valeurs min/max et start/end du slider
 
-gestion de profil ?
-- présence entete
-- séparatif colonnes
-- colonnes X, Y, GDH, Label [gdh fin, description, idEvent]
-
-Générer une carte de chaleur
+importer F5 de semaforce
+- générer relevé gonio
