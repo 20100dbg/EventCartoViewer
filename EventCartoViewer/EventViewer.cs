@@ -16,7 +16,7 @@ namespace EventCartoViewer
         public EventViewer()
         {
             InitializeComponent();
-
+            this.Text = "EventCartoViewer " + Settings.version;
             Settings.LoadDefaultValues();
             Settings.ReadConfigFile();
 
@@ -231,7 +231,9 @@ namespace EventCartoViewer
         private List<EventShape> ReadCsv(string filename)
         {
             StreamReader sr = new StreamReader(filename);
-            string[] entetes = sr.ReadLine().Split(new char[] { ';' });
+            string[] entetes = sr.ReadLine().ToUpper().Split(new char[] { ';' });
+
+            CSVreader.InitCSVreader();
 
             List<EventShape> events;
             bool isValid = CSVreader.ReadHeaders(entetes);
@@ -414,6 +416,8 @@ namespace EventCartoViewer
             string datafile = ofd.FileName;
 
             if (string.IsNullOrEmpty(datafile) || !File.Exists(datafile)) return;
+
+            dgv.Columns.Clear();
 
             if (datafile.EndsWith(".csv"))
             {

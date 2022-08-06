@@ -63,8 +63,8 @@ namespace EventCartoViewer
                     Coordinates = new List<EventCoord>() {
                         new EventCoord
                         {
-                            X = double.Parse(tab[fields[0].Id]),
-                            Y = double.Parse(tab[fields[1].Id])
+                            X = double.Parse(Util.FixDecSeparator(tab[fields[0].Id])),
+                            Y = double.Parse(Util.FixDecSeparator(tab[fields[1].Id]))
                         } },
                     GdhDebut = DateTime.Parse(tab[fields[2].Id]),
                     GdhFin = DateTime.Parse(tab[fields[3].Id]),
@@ -74,10 +74,20 @@ namespace EventCartoViewer
                 if (fields[4].Id > -1) es.Label = tab[fields[4].Id];
                 if (fields[5].Id > -1) es.Description = tab[fields[5].Id];
                 if (fields[6].Id > -1) es.NomStyle = tab[fields[6].Id];
-
-                for (int i = 7; i < fields.Count; i++)
+                if (fields[7].Id > -1 && tab[fields[7].Id] != "")
                 {
-                    es.KeyValues.Add(fields[i].Id, tab[fields[i].Id]);
+                    Coord capteur = Coord.FromEventCoord(es.Coordinates[0]);
+
+                    float azm = float.Parse(Util.FixDecSeparator(tab[fields[7].Id]));
+                    Coord cible = GetCible(capteur, azm, Settings.distanceReleve);
+                    es.Coordinates.Add(EventCoord.FromCoord(cible));
+                    es.TypeShapefile = TypeShapefile.Ligne;
+                }
+
+                for (int i = 8; i < fields.Count; i++)
+                {
+                    if (fields[i].Id > -1)
+                        es.KeyValues.Add(fields[i].Id, tab[fields[i].Id]);
                 }
 
                 events.Add(es);

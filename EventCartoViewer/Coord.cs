@@ -9,12 +9,30 @@ namespace EventCartoViewer
         public double X { get; set; }
         public string Zone { get; set; }
         public int Fuseau { get; set; }
+
+        public static Coord FromEventCoord(EventCoord ec)
+        {
+            return new Coord
+            {
+                X = ec.X,
+                Y = ec.Y
+            };
+        }
     }
 
     public class EventCoord
     {
         public double Y { get; set; }
         public double X { get; set; }
+
+        public static EventCoord FromCoord(Coord c)
+        {
+            return new EventCoord
+            {
+                X = c.X,
+                Y = c.Y
+            };
+        }
 
         private static EventCoord ecCenter = new EventCoord { X = 0, Y = 0 };
 
