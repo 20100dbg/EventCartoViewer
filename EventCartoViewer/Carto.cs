@@ -7,13 +7,15 @@ namespace EventCartoViewer
     internal static class Carto
     {
 
+        static EventViewer parentForm;
         static AxMap axMap1;
         public static List<Couche> couches = new List<Couche>();
         public static List<StyleCouche> styles = new List<StyleCouche>();
 
-        public static void Init(AxMap mapObj)
+        public static void Init(EventViewer pf, AxMap mapObj)
         {
             axMap1 = mapObj;
+            parentForm = pf;
 
             axMap1.Clear();
             axMap1.TileProvider = tkTileProvider.ProviderNone;
@@ -342,9 +344,7 @@ namespace EventCartoViewer
         {
             double currentX = 0.0, currentY = 0.0;
             axMap1.PixelToDegrees(e.x, e.y, ref currentX, ref currentY);
-
-            //MessageBox.Show(Util.ConvertLatLongToMGRS(currentX, currentY));
+            parentForm.SetTbMGRS(Util.ConvertLatLongToMGRS(currentX, currentY));
         }
     }
-
 }

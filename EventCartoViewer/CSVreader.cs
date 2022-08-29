@@ -29,7 +29,7 @@ namespace EventCartoViewer
                 else if (cols[i] == "Y" || cols[i] == "Y CAPTEUR" || cols[i] == "LAT" || cols[i] == "LATITUDE") fields[1].Id = i;
                 else if (cols[i] == "GDHDEBUT" || cols[i] == "GDH") fields[2].Id = i;
                 else if (cols[i] == "GDHFIN") fields[3].Id = i;
-                else if (cols[i] == "LABEL") fields[4].Id = i;
+                else if (cols[i] == "LABEL" || cols[i] == "NAME") fields[4].Id = i;
                 else if (cols[i] == "DESCRIPTION") fields[5].Id = i;
                 else if (cols[i] == "STYLE") fields[6].Id = i;
                 else if (cols[i] == "AZM" || cols[i] == "AZT" || cols[i] == "AZIMUT") fields[7].Id = i;

@@ -20,7 +20,7 @@ namespace EventCartoViewer
             Settings.LoadDefaultValues();
             Settings.ReadConfigFile();
 
-            s = new Slider(this.Controls, new Point(40, 450), new Size(400, 22), 0, 100);
+            s = new Slider(this.Controls, new Point(100, 460), new Size(400, 22), 0, 100);
             s.TickRate = 40;
             s.SpanMoving += S_SpanMoving;
             s.SpanMoved += S_SpanMoving;
@@ -54,7 +54,7 @@ namespace EventCartoViewer
             ListeCartoDispo();
 
             //charge la carto
-            Carto.Init(axMap1);
+            Carto.Init(this, axMap1);
 
             Carto.InitStyleLayers(Carto.styles);
         }
@@ -126,20 +126,20 @@ namespace EventCartoViewer
             Settings.WriteConfigFile();
         }
 
-        private void b_test_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void b_applyCarto_Click(object sender, EventArgs e)
         {
             SaveCarto();
 
-            Carto.Init(axMap1);
+            Carto.Init(this, axMap1);
 
             Carto.InitStyleLayers(Carto.styles);
 
             GetPoints();
+        }
+
+        public void SetTbMGRS(string mgrs)
+        {
+            tb_coord.Text = mgrs;
         }
 
         #endregion
@@ -180,6 +180,7 @@ namespace EventCartoViewer
             DateTime dtStart = gdhMin.AddSeconds(GetUnitsToSeconds(s.CurrentValue));
             DateTime dtFin = dtStart.AddSeconds(GetUnitsToSeconds(s.CurrentSpan));
             l_currentValue.Text = dtStart.ToString();
+            l_currentValue2.Text = dtFin.ToString();
 
             List<EventShape> aDessiner = new List<EventShape>();
 
@@ -221,6 +222,7 @@ namespace EventCartoViewer
 
             //if (Settings.afficherBuffer) Carto.SetBuffer();
 
+            l_nbEvent.Text = aDessiner.Count + " / " + events.Count;
             if (Settings.afficherLabel) Carto.GenerateLabels();
 
             FillDgv(aDessiner);
@@ -429,7 +431,7 @@ namespace EventCartoViewer
                 events = ReadWKT(datafile);
             }
 
-            MessageBox.Show(events.Count + " evenements chargés");
+            //MessageBox.Show(events.Count + " evenements chargés");
 
             if (events.Count == 0) return;
 
@@ -463,6 +465,8 @@ namespace EventCartoViewer
                 if (gdhMax < events[i].GdhFin) gdhMax = events[i].GdhFin;
             }
             TimeSpan ts = gdhMax - gdhMin;
+            l_minValue.Text = gdhMin.ToShortDateString() + "\n" + gdhMin.ToShortTimeString();
+            l_maxValue.Text = gdhMax.ToShortDateString() + "\n" + gdhMax.ToShortTimeString();
 
             int delta = (int)(ts.TotalSeconds * 0.05);
             gdhMin = gdhMin.Subtract(new TimeSpan(0, 0, delta));

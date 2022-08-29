@@ -1,0 +1,22 @@
+YO !
+pour utiliser cette incroyable logiciel, il te faut :
+
+- de la carto
+-- en format GEOTIFF (.tif), de préférence moins de 200mo
+
+- des données
+-- au format CSV, avec des entêtes :
+--- GDH, GDHDEBUT et GDHFIN (pour des evenements long)
+--- X / LONG / LONGITUDE
+--- Y / LAT / LATITUDE
+--- LABEL / NAME
+--- AZM (il trace automatiquement le relevé gonio)
+
+-- au format WKT (généré par globalmapper, c'est du texte mais plus complexe que CSV)
+
+Pour les données il y a plusieurs exemples fournis.
+
+Une fois dans le logiciel :
+- sélectionner la carto voulue
+- charger les données voulues
+- jouer avec le contrôle "timeline"
